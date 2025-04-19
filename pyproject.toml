@@ -5,8 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "alive-progress>=3.2.0",
+    "matplotlib>=3.10.1",
     "numpy>=2.2.4",
+    "pip>=25.0.1",
     "ptflops>=0.7.4",
     "scikit-learn>=1.6.1",
     "torch>=2.6.0",
+    "tqdm>=4.67.1",
 ]
