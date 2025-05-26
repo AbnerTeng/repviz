@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from torch import nn
 
@@ -18,6 +18,16 @@ def list_child_modules(
             print(name, module)
     else:
         return child_mod_names
+
+
+def list_child_modules_type(model: Any) -> List[str]:
+    types = set()
+
+    for _, module in model.named_modules():
+        if len(list(module.children())) == 0:
+            types.add(type(module).__name__)
+
+    return sorted(list(types))
 
 
 def group_layers_by_type(model: nn.Module) -> defaultdict:

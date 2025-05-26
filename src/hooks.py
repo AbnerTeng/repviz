@@ -32,8 +32,7 @@ class HookManager:
                 if partial_matches is not None:
                     for partial_match in partial_matches:
                         if partial_match and partial_match in str(module):
-                            hook = module.register_forward_hook(
-                                self._hook_fn(name))
+                            hook = module.register_forward_hook(self._hook_fn(name))
                             self.hooks.append(hook)
                 else:
                     hook = module.register_forward_hook(self._hook_fn(name))

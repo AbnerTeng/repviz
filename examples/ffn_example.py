@@ -2,15 +2,16 @@ from typing import Tuple
 
 import numpy as np
 import torch
-from alive_progress import alive_it
 from torch import nn
 from torch import optim
 from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
 from sklearn.datasets import fetch_covtype
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
 from src.hooks import HookManager
+from src.model.ffn import FFN
 from src.utils import list_child_modules
 
 
@@ -30,29 +31,6 @@ class SampleDataset(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
         return (self.features[idx, :], self.label[idx] - 1)
-
-
-class FFN(nn.Module):
-    def __init__(self, n_feats: int, n_classes: int) -> None:
-        super().__init__()
-        self.ffn = nn.Sequential(
-            nn.LayerNorm(n_feats),
-            nn.Dropout(0.1),
-            nn.Linear(n_feats, 512),
-            nn.ReLU(),
-            nn.LayerNorm(512),
-            nn.Dropout(0.1),
-            nn.Linear(512, 512),
-            nn.ReLU(),
-            nn.LayerNorm(512),
-            nn.Dropout(0.1),
-            nn.Linear(512, n_classes),
-            nn.Softmax(dim=1)
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.ffn(x)
-
 
 
 if __name__ == "__main__":
@@ -75,7 +53,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     model = FFN(X_train.shape[1], len(set(y_train)))
 
-    for epoch in alive_it(range(n_epochs), bar="fish"):
+    for epoch in tqdm(range(n_epochs)):
         epoch_loss = 0
         model.train()
         for tr_x, tr_y in train_loader:
@@ -96,7 +74,7 @@ if __name__ == "__main__":
     print("testing...")
     model.eval()
     hook_mgr = HookManager()
-    hook_mgr.register_hooks(model, partial_match="LayerNorm")
+    hook_mgr.register_hooks(model, partial_matches=["LayerNorm"])
     with torch.no_grad():
         preds = []
 

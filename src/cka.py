@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 
 def centering(x: torch.Tensor) -> torch.Tensor:
@@ -23,3 +24,14 @@ def linear_cka(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     var_y = linear_hsic(y, y)
 
     return hsic / torch.sqrt(var_x * var_y)
+
+
+def cosine_sim(mat: torch.Tensor, calc_dim: int) -> torch.Tensor:
+    """
+    Assume mat is the hidden representation of a batch
+    """
+    similarity = F.cosine_similarity(
+        mat.unsqueeze(dim=calc_dim), mat.unsqueeze(dim=calc_dim + 1), dim=-1
+    )
+
+    return torch.mean(similarity)
