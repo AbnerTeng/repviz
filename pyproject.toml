@@ -15,4 +15,7 @@ dependencies = [
     "streamlit>=1.45.1",
     "torch>=2.6.0",
     "tqdm>=4.67.1",
+    "umap-learn>=0.5.9.post2",
+    "umap>=0.1.1",
+    "plotly>=6.2.0",
 ]
