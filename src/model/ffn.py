@@ -139,13 +139,20 @@ class OverfitFFN(nn.Module):
     def __init__(self, n_feats: int, n_classes: int) -> None:
         super().__init__()
         self.ffn = nn.Sequential(
+            nn.LayerNorm(n_feats),
+            nn.Dropout(0.0),
             nn.Linear(n_feats, 512),
             nn.ReLU(),
-            nn.Linear(512, 1024),
+            nn.LayerNorm(512),
+            nn.Dropout(0.0),
+            nn.Linear(512, 512),
             nn.ReLU(),
-            nn.Linear(1024, 512),
+            nn.LayerNorm(512),
+            nn.Dropout(0.0),
+            nn.Linear(512, 64),
             nn.ReLU(),
-            nn.Linear(512, n_classes),
+            nn.LayerNorm(64),
+            nn.Linear(64, n_classes),
             nn.Softmax(dim=-1),
         )
 
