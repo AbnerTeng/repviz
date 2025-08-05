@@ -1,0 +1,61 @@
+import os
+import json
+from typing import Union
+
+import torch
+import numpy as np
+
+from .registry import Registry
+from .hooks import HookManager
+from .utils import get_model_info
+
+
+def run_inference(
+    registry: Registry,
+    data: Union[np.ndarray, torch.Tensor],
+    device: Union[torch.device, str],
+) -> None:
+    device = torch.device(device)
+    models = registry.get_model()
+
+    for model_name, model in models.items():
+        output_path = f"outputs/{model_name}"
+        model.eval()
+        model_info = get_model_info(model)
+        model_hook_mgr = HookManager(track_all=True)
+        model_hook_mgr.register_hooks(model, partial_matches=["ALL"])
+
+        with torch.no_grad():
+            if isinstance(data, np.ndarray):
+                ts_x = torch.tensor(data, dtype=torch.float32).to(device)
+            else:
+                ts_x = data.to(device)
+
+            output = model(ts_x)
+            activations = {
+                k: v.tolist() for k, v in model_hook_mgr.get_activations().items()
+            }
+            weights = {k: v.tolist() for k, v in model_hook_mgr.get_weights().items()}
+            gradients = {
+                k: v.tolist() for k, v in model_hook_mgr.get_gradients().items()
+            }
+            preds = output.detach().cpu().numpy().tolist()
+
+        model_hook_mgr.clear_hooks()
+
+        os.makedirs(output_path, exist_ok=True)
+
+        with open(os.path.join(output_path, "model_structure.json"), "w") as f:
+            json.dump(model_info, f)
+
+        with open(os.path.join(output_path, "activations.json"), "w") as f:
+            json.dump(activations, f)
+
+        with open(os.path.join(output_path, "weights.json"), "w") as f:
+            json.dump(weights, f)
+
+        with open(os.path.join(output_path, "gradients.json"), "w") as f:
+            json.dump(gradients, f)
+
+        with open(os.path.join(output_path, "predictions.json"), "w") as f:
+            json.dump(preds, f)
