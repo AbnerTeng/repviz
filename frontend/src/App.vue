@@ -3,41 +3,31 @@
     <ThemeSwitcher />
     <h1>Neural Layer Analysis</h1>
     <ModelGraph />
-    <ActivationScatter :activations="activations" />
-    <!-- <WeightHistorgram :weights="weights" /> -->
+    <ActivationScatter />
+    <WeightHistogram />
   </div>
 </template>
 
-<script>
+<script setup>
 import ThemeSwitcher from './components/ThemeSwitcher.vue';
 import ModelGraph from './components/ModelGraph.vue';
-// import ActivationScatter from './components/ActivationScatter.vue';
-// import WeightHistorgram from './components/WeightHistorgram.vue';
-
-export default {
-  name: 'App',
-  components: {
-    ModelGraph,
-    // ActivationScatter,
-    // WeightHistorgram,
-    ThemeSwitcher,
-  },
-  data() {
-    return {
-      // activations: activations,
-      // weights: weights,
-    };
-  },
-};
+import ActivationScatter from './components/ActivationScatter.vue';
+import WeightHistogram from './components/WeightHistogram.vue';
 </script>
 
-<style>
+<style scoped>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  
+  width: 100%;
   margin-top: 60px;
 }
 </style>

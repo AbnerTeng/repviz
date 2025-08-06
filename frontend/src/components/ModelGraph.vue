@@ -44,26 +44,29 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import axios from 'axios';
+import { useModelStore } from '../stores/modelStore';
 
 const modelList = ref([]);
-const selectedModel = ref("");
+const modelStore = useModelStore();
+const selectedModel = ref(modelStore.selectedModel);
 const modelStructure = ref(null);
 const selectedNode = ref(null);
 
+
 function formatKwargs(kwargs) {
-  if (!kwargs || Object.keys(kwargs).length === 0) {
-    return "";
-  }
-  return Object.entries(kwargs)
-    .map(([key, value]) => {
-      if (typeof value === 'string') {
-        return `${key}='${value}'`;
-      }
-      if (typeof value === 'object' && value !== null) {
-        return `${key}=${JSON.stringify(value)}`;
-      }
-      return `${key}=${value}`;
-    })
+    if (!kwargs || Object.keys(kwargs).length === 0) {
+        return "";
+    }
+    return Object.entries(kwargs)
+        .map(([key, value]) => {
+        if (typeof value === 'string') {
+            return `${key}='${value}'`;
+        }
+        if (typeof value === 'object' && value !== null) {
+            return `${key}=${JSON.stringify(value)}`;
+        }
+        return `${key}=${value}`;
+        })
     .join(", ");
 }
 
@@ -123,6 +126,7 @@ async function loadModel() {
     if (!selectedModel.value) return;
     selectedNode.value = null;
     try {
+        modelStore.setModel(selectedModel.value);
         const response = await axios.get('/api/model-structure', {
             params: { model_name: selectedModel.value }
         });
