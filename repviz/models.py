@@ -2,12 +2,7 @@ from typing import Tuple
 
 import torch
 from torch import nn
-<<<<<<< HEAD:models.py
-import torch.nn.functional as F
-||||||| parent of 593d90b ([dev] finish dev):models.py
-=======
 from torch.nn import functional as F
->>>>>>> 593d90b ([dev] finish dev):repviz/models.py
 
 
 class FFN(nn.Module):
@@ -159,80 +154,6 @@ class OverfitFFN(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.ffn(x)
-<<<<<<< HEAD:models.py
-
-
-class AttentionScore(nn.Module):
-    def __init__(self, head_dim: int) -> None:
-        super().__init__()
-        self.head_dim = head_dim
-
-    def forward(self, q, k) -> torch.Tensor:
-        return F.softmax((q @ k.transpose(-2, -1)) / (self.head_dim ** 0.5), dim=-1)
-
-
-class AttentionBlock(nn.Module):
-    def __init__(self, dim: int, heads: int) -> None:
-        super().__init__()
-        self.heads = heads
-        self.dim = dim
-        self.head_dim = dim // heads
-
-        self.norm = nn.LayerNorm(dim)
-        self.attn = AttentionScore(self.head_dim)
-        self.q_proj = nn.Linear(dim, dim, bias=False)
-        self.k_proj = nn.Linear(dim, dim, bias=False)
-        self.v_proj = nn.Linear(dim, dim, bias=False)
-        self.out_proj = nn.Linear(dim, dim)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: (B, T, D)
-        B, T, D = x.shape
-
-        x = self.norm(x)
-
-        # Project Q, K, V
-        q = self.q_proj(x).view(B, T, self.heads, self.head_dim).transpose(1, 2)
-        k = self.k_proj(x).view(B, T, self.heads, self.head_dim).transpose(1, 2)
-        v = self.v_proj(x).view(B, T, self.heads, self.head_dim).transpose(1, 2)
-
-        # Compute scaled dot-product attention
-        attn = self.attn(q, k)
-
-        # Attention output
-        out = attn @ v  # (B, heads, T, head_dim)
-        out = out.transpose(1, 2).contiguous().view(B, T, D)  # (B, T, D)
-        out = self.out_proj(out)
-
-        return out, attn
-
-
-class TinyTabularAttentionModel(nn.Module):
-    def __init__(self, input_dim: int, seq_len: int = 4, dim: int = 32, heads: int = 1, num_classes: int = 2):
-        super().__init__()
-        self.seq_len = seq_len
-        self.token_dim = dim
-
-        self.input_proj = nn.Linear(input_dim, seq_len * dim)
-        self.attn_block = AttentionBlock(dim, heads)
-
-        self.classifier = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.ReLU(),
-            nn.Linear(dim, num_classes)
-        )
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: (B, F)
-        B = x.size(0)
-        x = self.input_proj(x).view(B, self.seq_len, self.token_dim)
-        out, self.attn = self.attn_block(x)  # out: (B, T, D), attn: (B, heads, T, T)
-        pooled = out.mean(dim=1)  # (B, D)
-        logits = self.classifier(pooled)
-
-        return logits
-||||||| parent of 593d90b ([dev] finish dev):models.py
-=======
 
 
 class AttentionScore(nn.Module):
@@ -309,4 +230,3 @@ class TinyTabularAttentionModel(nn.Module):
         logits = self.classifier(pooled)
 
         return logits
->>>>>>> 593d90b ([dev] finish dev):repviz/models.py
