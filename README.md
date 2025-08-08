@@ -5,7 +5,7 @@ RepViz is a Python package for visualizing the internal representations of machi
 ## Features
 
 *   **Model Agnostic:** Designed to work with different model architectures.
-*   **Rich Visualizations:** Generate UMAP plots, heatmaps, and other visualizations to explore model representations.
+*   **Rich Visualizations:** Generate sctter plots, heatmaps, and other visualizations for activations, weights, and gradients to explore model representations.
 *   **Extensible:** Easily register new models and plotting functions.
 *   **Inference and Analysis:** Run inference with your models and analyze the results.
 
@@ -14,6 +14,7 @@ RepViz is a Python package for visualizing the internal representations of machi
 To install the package in editable mode, which is recommended for development, run the following command from the root of the repository:
 
 ```bash
+cd repviz
 pip install -e .
 ```
 
