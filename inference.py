@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Union
+from typing import Optional, Union
 
 import torch
 import numpy as np
@@ -13,7 +13,9 @@ from .utils import get_model_info
 def run_inference(
     registry: Registry,
     data: Union[np.ndarray, torch.Tensor],
-    device: Union[torch.device, str],
+    label: Optional[np.ndarray] = None,
+    device: Union[torch.device, str] = "cpu",
+    get_gradients: bool = False,
 ) -> None:
     device = torch.device(device)
     models = registry.get_model()
@@ -25,13 +27,17 @@ def run_inference(
         model_hook_mgr = HookManager(track_all=True)
         model_hook_mgr.register_hooks(model, partial_matches=["ALL"])
 
-        with torch.no_grad():
+        if get_gradients and label is not None:
             if isinstance(data, np.ndarray):
                 ts_x = torch.tensor(data, dtype=torch.float32).to(device)
+                ts_y = torch.tensor(label, dtype=torch.long).to(device)
             else:
                 ts_x = data.to(device)
+                ts_y = label.to(device)
 
             output = model(ts_x)
+            loss = torch.nn.CrossEntropyLoss()(output, ts_y)
+            loss.backward()
             activations = {
                 k: v.tolist() for k, v in model_hook_mgr.get_activations().items()
             }
@@ -40,6 +46,24 @@ def run_inference(
                 k: v.tolist() for k, v in model_hook_mgr.get_gradients().items()
             }
             preds = output.detach().cpu().numpy().tolist()
+        else:
+            with torch.no_grad():
+                if isinstance(data, np.ndarray):
+                    ts_x = torch.tensor(data, dtype=torch.float32).to(device)
+                else:
+                    ts_x = data.to(device)
+
+                output = model(ts_x)
+                activations = {
+                    k: v.tolist() for k, v in model_hook_mgr.get_activations().items()
+                }
+                weights = {
+                    k: v.tolist() for k, v in model_hook_mgr.get_weights().items()
+                }
+                gradients = {
+                    k: v.tolist() for k, v in model_hook_mgr.get_gradients().items()
+                }
+                preds = output.detach().cpu().numpy().tolist()
 
         model_hook_mgr.clear_hooks()
 

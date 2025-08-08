@@ -5,6 +5,8 @@
     <ModelGraph />
     <ActivationScatter />
     <WeightHistogram />
+    <GradientHistogram />
+    <CKAHeatmap />
   </div>
 </template>
 
@@ -13,6 +15,8 @@ import ThemeSwitcher from './components/ThemeSwitcher.vue';
 import ModelGraph from './components/ModelGraph.vue';
 import ActivationScatter from './components/ActivationScatter.vue';
 import WeightHistogram from './components/WeightHistogram.vue';
+import CKAHeatmap from './components/CKAHeatmap.vue';
+import GradientHistogram from './components/GradientHistogram.vue';
 </script>
 
 <style scoped>

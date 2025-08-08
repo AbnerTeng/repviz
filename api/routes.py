@@ -7,6 +7,8 @@ import numpy as np
 from fastapi import APIRouter, Query
 from fastapi.responses import FileResponse, JSONResponse
 
+from tools import cka, gram_linear
+
 router = APIRouter()
 
 
@@ -38,6 +40,18 @@ def get_model_structure(model_name: str):
 def get_activations(model_name: str):
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../outputs"))
     return FileResponse(f"{root_dir}/{model_name}/activations.json")
+
+
+@router.get("/api/weights")
+def get_weights(model_name: str):
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../outputs"))
+    return FileResponse(f"{root_dir}/{model_name}/weights.json")
+
+
+@router.get("/api/gradients")
+def get_gradients(model_name: str):
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../outputs"))
+    return FileResponse(f"{root_dir}/{model_name}/gradients.json")
 
 
 @router.get("/api/activations/plots")
@@ -84,12 +98,6 @@ def get_activation_scatter(
         )
 
 
-@router.get("/api/weights")
-def get_weights(model_name: str):
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../outputs"))
-    return FileResponse(f"{root_dir}/{model_name}/weights.json")
-
-
 @router.get("/api/weights/plots")
 def get_weight_histogram(
     model_name: str,
@@ -122,10 +130,37 @@ def get_weight_histogram(
         )
 
 
-@router.get("/api/gradients")
-def get_gradients():
+@router.get("/api/gradients/plots")
+def get_gradient_histogram(
+    model_name: str,
+    layer_y: str = Query(..., description="Layer to plot gradients for"),
+):
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../outputs"))
-    return FileResponse(f"{root_dir}/gradients.json")
+    grad_path = f"{root_dir}/{model_name}/gradients.json"
+
+    if not os.path.exists(grad_path):
+        return JSONResponse(status_code=404, content={"error": "Gradients not found"})
+
+    try:
+        with open(grad_path, "r") as f:
+            gradients = json.load(f)
+
+        if layer_y not in gradients:
+            return JSONResponse(
+                status_code=400,
+                content={"error": f"Layer '{layer_y}' not found in gradients"},
+            )
+        gradients = np.clip(np.array(gradients[layer_y]).flatten(), 1e-6, 1e6)
+        hist_data = {
+            "gradients": gradients.tolist(),
+            "layer_y": layer_y,
+        }
+        return JSONResponse(content=hist_data)
+    except json.JSONDecodeError:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to decode gradients JSON"},
+        )
 
 
 @router.get("/api/predictions")
@@ -134,7 +169,49 @@ def get_predictions():
     return FileResponse(f"{root_dir}/predictions.json")
 
 
-@router.get("/api/cka_similarity")
-def get_cka_similarity():
+@router.get("/api/cka-similarity")
+def get_cka_similarity(model1: str, model2: str):
     root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../outputs"))
-    return FileResponse(f"{root_dir}/cka_similarity.json")
+
+    model1_activations_path = os.path.join(root_dir, f"{model1}/activations.json")
+    model2_activations_path = os.path.join(root_dir, f"{model2}/activations.json")
+
+    if not os.path.exists(model1_activations_path) or not os.path.exists(
+        model2_activations_path
+    ):
+        return JSONResponse(
+            status_code=404,
+            content={"error": "One or both model activations not found"},
+        )
+
+    try:
+        with open(model1_activations_path, "r") as f:
+            model1_activations = json.load(f)
+
+        with open(model2_activations_path, "r") as f:
+            model2_activations = json.load(f)
+
+        used_activs1 = {k: v for k, v in model1_activations.items() if v}
+        used_activs2 = {k: v for k, v in model2_activations.items() if v}
+        cka_matrices = np.zeros((len(used_activs1), len(used_activs2)))
+
+        for i, (_, v1) in enumerate(used_activs1.items()):
+            for j, (_, v2) in enumerate(used_activs2.items()):
+                cka_value = cka(
+                    gram_linear(np.array(v1).mean(axis=0)),
+                    gram_linear(np.array(v2).mean(axis=0)),
+                )
+                cka_matrices[len(used_activs1) - i - 1, j] = cka_value
+        print(cka_matrices)
+        cka_similarity = {
+            "model1": model1,
+            "model2": model2,
+            "cka_similarity": cka_matrices.tolist(),
+        }
+        return JSONResponse(content=cka_similarity)
+
+    except json.JSONDecodeError:
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to decode activations JSON"},
+        )

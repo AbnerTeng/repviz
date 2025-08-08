@@ -22,11 +22,11 @@ import axios from 'axios';
 import Plotly from 'plotly.js-dist-min';
 
 const plotContainerHist = ref(null);
-const activations = ref({});
+const weights = ref({});
 const selectedLayer = ref('');
 const modelStore = useModelStore();
 const selectedModel = computed(() => modelStore.selectedModel);
-const layerList = computed(() => Object.keys(activations.value));
+const layerList = computed(() => Object.keys(weights.value));
 
 watch(selectedModel, async (model) => {
   if (!model) return;
@@ -35,12 +35,12 @@ watch(selectedModel, async (model) => {
     const res = await axios.get('/api/weights', {
       params: { model_name: model },
     });
-    activations.value = res.data;
+    weights.value = res.data;
     if (layerList.value.length > 1) {
       selectedLayer.value = layerList.value[1]; // auto select
     }
   } catch (err) {
-    console.error("Failed to load activations:", err);
+    console.error("Failed to load weights:", err);
   }
 });
 watch(selectedLayer, async (layer) => {

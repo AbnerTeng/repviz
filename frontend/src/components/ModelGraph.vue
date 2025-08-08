@@ -239,3 +239,164 @@ async function loadModel() {
     margin-bottom: 20px;
 }
 </style>
+
+<!-- <template>
+  <div class="graph-container">
+    <svg :width="1200" :height="svgHeight">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#888" />
+        </marker>
+      </defs>
+      <line
+        v-for="edge in graph.edges"
+        :key="`${edge.from}->${edge.to}`"
+        :x1="getNode(edge.from)?.x + nodeWidth / 2"
+        :y1="getNode(edge.from)?.y + nodeHeight / 2"
+        :x2="getNode(edge.to)?.x + nodeWidth / 2"
+        :y2="getNode(edge.to)?.y + nodeHeight / 2"
+        stroke="#aaa"
+        stroke-width="2"
+        marker-end="url(#arrow)"
+      />
+      <g
+        v-for="node in graph.nodes"
+        :key="node.id"
+        :transform="`translate(${node.x}, ${node.y})`"
+        class="node-group"
+        @click="selectNode(node)"
+      >
+        <rect
+          :width="nodeWidth"
+          :height="nodeHeight"
+          rx="10"
+          ry="10"
+          :fill="getNodeColor(node)"
+          stroke="#333"
+          stroke-width="1"
+        />
+        <text x="10" y="24" font-size="14" fill="#fff" font-family="sans-serif">{{ node.name }}</text>
+        <text x="10" y="44" font-size="12" fill="#ddd" font-family="monospace">{{ node.op }}</text>
+      </g>
+    </svg>
+
+    <div v-if="selectedNode" class="node-details">
+      <h3>{{ selectedNode.name }}</h3>
+      <p><strong>op:</strong> {{ selectedNode.op }}</p>
+      <p><strong>target:</strong> {{ selectedNode.target }}</p>
+      <p><strong>group:</strong> {{ selectedNode.group_id }}</p>
+      <p><strong>inputs:</strong> {{ selectedNode.inputs?.join(', ') }}</p>
+      <p><strong>outputs:</strong> {{ selectedNode.outputs?.join(', ') }}</p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue';
+import axios from 'axios';
+
+const selectedModel = ref('');
+const modelList = ref([]);
+const graph = ref({ nodes: [], edges: [] });
+const selectedNode = ref(null);
+const nodeWidth = 160;
+const nodeHeight = 60;
+
+function getNode(id) {
+  return graph.value.nodes.find(n => n.id === id);
+}
+
+function getNodeColor(node) {
+  if (node.op === 'placeholder') return '#4A90E2';
+  if (node.op === 'output') return '#D0021B';
+  if (node.op === 'call_module') return '#7ED321';
+  if (node.op === 'call_function') return '#9B9B9B';
+  return '#888';
+}
+
+function selectNode(node) {
+  selectedNode.value = node;
+}
+
+const svgHeight = computed(() => {
+  const ys = graph.value?.nodes?.map(n => n.y ?? 0);
+  return ys.length ? Math.max(...ys) + 200 : 500;
+});
+
+function layoutGraph(data) {
+  const groupMap = new Map();
+  const groupOrder = [];
+  const yStep = 150;
+  const xStep = 180;
+
+  for (const node of data.nodes) {
+    const group = node.group_id || 'ungrouped';
+    console.log("Group map:");
+    for (const [gid, nodes] of groupMap.entries()) {
+        console.log(gid, nodes.map(n => n.name));
+    }
+    if (!groupMap.has(group)) {
+      groupMap.set(group, []);
+      groupOrder.push(group);
+    }
+    groupMap.get(group).push(node);
+  }
+
+  groupOrder.forEach((groupId, groupIndex) => {
+    const nodes = groupMap.get(groupId);
+    const y = groupIndex * yStep + 50;
+    const totalWidth = nodes.length * xStep;
+    const baseX = 600 - (totalWidth - xStep) / 2;
+
+    nodes.forEach((node, i) => {
+      node.x = baseX + i * xStep;
+      node.y = y;
+    });
+  });
+
+  return data;
+}
+
+async function loadModel() {
+  if (!selectedModel.value) return;
+  const res = await axios.get('/api/model-structure', {
+    params: { model_name: selectedModel.value }
+  });
+
+  if (!res.data || !Array.isArray(res.data.nodes)) {
+    console.error("Invalid model structure:", res.data);
+    return;
+  }
+
+  graph.value = layoutGraph(res.data);
+  selectedNode.value = null;
+}
+
+onMounted(async () => {
+  const res = await axios.get('/api/models');
+  modelList.value = res.data;
+
+  // Auto-select and load first model
+  if (modelList.value.length > 0) {
+    selectedModel.value = modelList.value[1];
+    await loadModel();
+  }
+});
+</script>
+
+<style scoped>
+.graph-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  margin-top: 20px;
+}
+.node-details {
+  padding: 10px;
+  border-left: 1px solid #ccc;
+}
+.node-group:hover {
+  cursor: pointer;
+  opacity: 0.85;
+}
+</style> -->

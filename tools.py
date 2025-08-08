@@ -40,7 +40,7 @@ def cka(gram_x, gram_y, debiased=False):
 
     normalization_x = np.linalg.norm(gram_x)
     normalization_y = np.linalg.norm(gram_y)
-    return scaled_hsic / (normalization_x * normalization_y)
+    return scaled_hsic / ((normalization_x * normalization_y) + 1e-8)
 
 
 def decomposition(
