@@ -1,1 +1,3 @@
-# neural-layer-analysis
+# repviz
+
+A package for visualizing model representations.
