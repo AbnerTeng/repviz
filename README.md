@@ -1,3 +1,3 @@
-# neural-layer-analysis
+# repviz
 
-TBD...
+A package for visualizing model representations.

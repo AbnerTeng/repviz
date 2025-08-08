@@ -17,7 +17,15 @@ if __name__ == "__main__":
     model2.load_state_dict(
         torch.load("repviz/model/ffn_covtype_v2.pth", map_location=torch.device("cpu"))
     )
+    # reg = Registry()
+    # reg.register_model([model, model2])
+    # run_inference(reg, data, label, "cpu", get_gradients=True)
+    # print("Inference completed and outputs saved.")
+    x = torch.randn(20, 10)  # batch=20, seq_len=10
+    model = TinyTabularAttentionModel(x.shape[1], 10)
     reg = Registry()
-    reg.register_model([model, model2])
-    run_inference(reg, data, label, "cpu", get_gradients=True)
+    # reg.register_model([model, model2])
+    # run_inference(reg, data, "cpu")
     print("Inference completed and outputs saved.")
+    reg.register_model([model])
+    run_inference(reg, x, device="cpu", get_gradients=False)

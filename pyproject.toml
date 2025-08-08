@@ -1,13 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "neural-layer-analysis"
+name = "repviz"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "alive-progress>=3.2.0",
-    
-    
     "pip>=25.0.1",
     "ptflops>=0.7.4",
     "scikit-learn>=1.6.1",
@@ -21,7 +23,8 @@ dependencies = [
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.29.0",
     "python-multipart>=0.0.9",
-    "umap-learn>=0.5.9.post2",
+    "nbformat>=5.10.4",
 ]
-[project.scripts]
-repviz = "repviz.cli:serve"
+
+[tool.setuptools]
+packages = ["repviz"]
