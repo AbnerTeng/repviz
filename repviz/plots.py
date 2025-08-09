@@ -64,7 +64,7 @@ def histogram(
         edgecolor="black",
         label=layer_name,
     )
-    plt.title(f"Distribution of Mean Activations for {layer_name}")
+    plt.title(f"Distribution of Mean {viz_type} for {layer_name}")
     plt.xlabel(f"Mean {viz_type} Value")
     plt.ylabel("Frequency")
     plt.legend()
